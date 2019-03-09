@@ -1,3 +1,4 @@
 dataset
 .vscode
 .DS_Store
+*.log
