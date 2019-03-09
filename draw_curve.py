@@ -16,7 +16,7 @@ ppls = []
 lrs = []
 
 for line in lines:
-    if line.startswith('{'):
+    if line.startswith('{') and not 'valid' in line:
         data = json.loads(line, parse_float=float)
         losses.append(float(data['loss']))
         nll_losses.append(float(data['nll_loss']))
