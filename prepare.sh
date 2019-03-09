@@ -57,10 +57,10 @@ fairseq-preprocess --source-lang zh --target-lang en \
 echo "Training begins"
 mkdir -p checkpoints
 fairseq-train $DATADIR \
-  -a transformer_wmt_en_de_big_t2t --optimizer adam -s zh -t en \
-  --label-smoothing 0.1 --dropout 0.3 --max-tokens 5120 \
+  -a transformer --optimizer adam -s zh -t en \
+  --label-smoothing 0.1 --dropout 0.3 --max-tokens 4000 \
   --min-lr '1e-09' --lr-scheduler inverse_sqrt --weight-decay 0.0001 \
   --criterion label_smoothed_cross_entropy --max-update 200000 \
-  --warmup-updates 4000 --warmup-init-lr '0.3' \
-  --adam-betas '(0.9, 0.98)' --adam-eps '1e-09' \
+  --warmup-updates 4000 --warmup-init-lr '0.001' --lr '0.0001' \
+  --adam-betas '(0.9, 0.98)' --adam-eps '1e-09' --clip-norm 25.0 \
   --keep-last-epochs 20 --save-dir checkpoints --log-format json > train.log
