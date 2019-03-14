@@ -1,6 +1,6 @@
 # WMT 2017 Chinese-English NMT
 
-This project contains pre-processing scripts and Transformer baseline training scripts using [pytorch/fairseq](https://github.com/pytorch/fairseq) for [WMT 2017 Machine Translation of News](http://www.statmt.org/wmt17/translation-task.html) Chinese->English track.
+This project contains pre-processing scripts and Transformer baseline training scripts using [pytorch/fairseq](https://github.com/pytorch/fairseq) for [WMT 2017 Machine Translation of News](http://www.statmt.org/wmt17/translation-task.html) Chinese->English track. The model reaches 20 BLEU on testing dataset, after training for only 2 epochs, while the SOTA result is about 24 BLEU.
 
 # Dataset
 
@@ -16,7 +16,7 @@ Please modify the `fairseq-preprocess` command in `prepare.sh` to specify the nu
 
 ## Training monitoring
 
-Please refer to this [issue](https://github.com/pytorch/fairseq/issues/227).
+Refering to this [issue](https://github.com/pytorch/fairseq/issues/227), we provide script `draw_curve.py`. 
 
 ## Directory overview
 ```
