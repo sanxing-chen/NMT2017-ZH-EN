@@ -1,6 +1,6 @@
 # WMT 2017 Chinese-English NMT
 
-This project contains pre-processing scripts and Transformer baseline training scripts using [pytorch/fairseq](https://github.com/pytorch/fairseq) for [WMT 2017 Machine Translation of News](http://www.statmt.org/wmt17/translation-task.html) Chinese->English track. The model reaches 20 BLEU on testing dataset, after training for only 2 epochs, while the SOTA result is about 24 BLEU.
+This project contains pre-processing scripts and Transformer baseline training scripts using [pytorch/fairseq](https://github.com/pytorch/fairseq) for [WMT 2017 Machine Translation of News](http://www.statmt.org/wmt17/translation-task.html) Chinese->English track. The model reaches 20 BLEU on testing dataset, after training for only 2 epochs (18 hours on 6 NVIDIA Tesla K40M), while the SOTA result is about 24 BLEU.
 
 # Dataset
 
@@ -11,6 +11,8 @@ In order to run the pre-processing script, we need first download all dataset re
 The pre-processing script followed the steps describes in [Hany Hassan et.al. 2018](https://arxiv.org/pdf/1803.05567.pdf) except the second step. The pre-processing script will get 17.8M bilingual sentence pairs as it's described in the paper. After BPE with 32K merge operations, 50K and 33K will be in the Chinese and English vocabularies separately.
 
 Please modify the `fairseq-preprocess` command in `prepare.sh` to specify the number of cpu workers according to the real situation of your machine.
+
+Please also read the instruction in `prepare.sh`!
 
 # Others
 

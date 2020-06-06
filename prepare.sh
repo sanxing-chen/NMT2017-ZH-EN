@@ -5,10 +5,14 @@
 TEXT=dataset/
 DATADIR=data-bin/wmt17_zh_en
 
-# download, unzip, clean and tokenize dataset. 
+# download, unzip, clean and tokenize dataset.
+# pip install jieba
+# pip install nltk
 python ./preprocess.py
 
 # clean empty and long sentences, and sentences with high source-target ratio (training corpus only)
+# https://github.com/moses-smt/mosesdecoder
+# https://github.com/rsennrich/subword-nmt
 MOSESDECODER=../mosesdecoder
 $MOSESDECODER/scripts/training/clean-corpus-n.perl $TEXT/train zh en $TEXT/train.clean 3 70
 $MOSESDECODER/scripts/training/clean-corpus-n.perl $TEXT/valid zh en $TEXT/valid.clean 3 70
@@ -54,6 +58,8 @@ fairseq-preprocess --source-lang zh --target-lang en \
     --thresholdsrc 0 --thresholdtgt 0 --workers 12 --destdir $DATADIR
 
 # training
+# Note that the batch size is also depends on the number of GPUs available,
+# the experiment is initially performed in 6 NVIDIA Tesla K40M
 echo "Training begins"
 mkdir -p checkpoints
 fairseq-train $DATADIR \
