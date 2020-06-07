@@ -1,14 +1,14 @@
 #!/bin/sh
 
 # Heavily borrowed from https://github.com/twairball/fairseq-zh-en
-
+WORKER_NUM=1
 TEXT=dataset/
 DATADIR=data-bin/wmt17_zh_en
 
 # download, unzip, clean and tokenize dataset.
 # pip install jieba
 # pip install nltk
-python ./preprocess.py
+python preprocess.py $WORKER_NUM
 
 # clean empty and long sentences, and sentences with high source-target ratio (training corpus only)
 # https://github.com/moses-smt/mosesdecoder
@@ -55,7 +55,7 @@ rm -rf $DATADIR
 mkdir -p $DATADIR
 fairseq-preprocess --source-lang zh --target-lang en \
     --trainpref $TEXT/train.${NUM_OPS}.bpe --validpref $TEXT/valid.${NUM_OPS}.bpe --testpref $TEXT/test.${NUM_OPS}.bpe \
-    --thresholdsrc 0 --thresholdtgt 0 --workers 12 --destdir $DATADIR
+    --thresholdsrc 0 --thresholdtgt 0 --workers $WORKER_NUM --destdir $DATADIR
 
 # training
 # Note that the batch size is also depends on the number of GPUs available,

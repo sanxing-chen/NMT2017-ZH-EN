@@ -1,7 +1,11 @@
-from pathlib import Path
 import jieba
 import nltk
+
+import argparse
+from pathlib import Path
 import re
+from multiprocessing import Pool
+from functools import partial
 
 DATA_DIR = 'dataset'
 TRAIN_DATA_DIR = 'dataset/train'
@@ -16,6 +20,7 @@ TEST_DATA_EN_DIR = 'dataset/test.en'
 
 LENGTH_RATIO = 1.3
 
+WORKER_NUM = 1
 
 def is_lang(filename: str, lang: str):
     valid_suffix = [f'.{lang}', f'.{lang}.sgm', f'_{lang}.txt']
@@ -92,10 +97,32 @@ def remove_control_chars(s):
 def replace_nonbreaking_whitespace(s):
     return s.replace("\xa0", " ").strip()
 
+def process_line_pair(line_zh, line_en, setname):
+    # don't clean testing dataset escept deleting all the empty line
+    if setname != 'test':
+        line_en = remove_control_chars(line_en)
+        line_zh = remove_control_chars(line_zh)
+
+        line_en = replace_nonbreaking_whitespace(line_en)
+        line_zh = replace_nonbreaking_whitespace(line_zh)
+
+        if not contain_chinese(line_zh) or contain_chinese(line_en):
+            return None
+
+        line_zh, l1 = tokenize(line_zh, True)
+        line_en, l2 = tokenize(line_en, False)
+
+        # if l1 > l2 * LENGTH_RATIO or l2 > l1 * LENGTH_RATIO:
+        #     continue
+    else:
+        if len(line_en) == 0 or len(line_zh) == 0:
+            return None
+        line_zh, l1 = tokenize(line_zh, True)
+        line_en, l2 = tokenize(line_en, False)
+    return line_zh, line_en
+
 def clean_text(text_zh, text_en, setname):
 
-    zh_set = set()
-    en_set = set()
     cleaned_zh = []
     cleaned_en = []
 
@@ -104,40 +131,16 @@ def clean_text(text_zh, text_en, setname):
 
     it = 0
     total_size = len(text_zh)
-    for line_zh, line_en in zip(text_zh, text_en):
-        if it % 100000 == 0:
-            print('line {} in {} {:.1%}'.format(it, total_size, it / total_size))
-        it += 1
-        # don't clean testing dataset escept deleting all the empty line
-        if setname != 'test':
-            line_en = remove_control_chars(line_en)
-            line_zh = remove_control_chars(line_zh)
+    with Pool(processes=WORKER_NUM) as pool:
+        process_line_pair_fn = partial(process_line_pair, setname=setname)
+        line_paiers = list(pool.starmap(process_line_pair_fn, zip(text_zh, text_en)))
+        line_paiers = [i for i in line_paiers if i is not None]
 
-            line_en = replace_nonbreaking_whitespace(line_en)
-            line_zh = replace_nonbreaking_whitespace(line_zh)
-
-            if line_zh in zh_set or line_en in en_set:
-                continue
-            else:
-                zh_set.add(line_zh)
-                en_set.add(line_en)
-
-            if not contain_chinese(line_zh) or contain_chinese(line_en):
-                continue
-
-            line_zh, l1 = tokenize(line_zh, True)
-            line_en, l2 = tokenize(line_en, False)
-
-            # if l1 > l2 * LENGTH_RATIO or l2 > l1 * LENGTH_RATIO:
-            #     continue
-        else:
-            if len(line_en) == 0 or len(line_zh) == 0:
-                continue
-            line_zh, l1 = tokenize(line_zh, True)
-            line_en, l2 = tokenize(line_en, False)
-        cleaned_zh.append(line_zh)
-        cleaned_en.append(line_en)
-
+    if setname != 'test':
+        line_paiers = set(line_paiers)
+        line_paiers = list(line_paiers)
+    cleaned_zh, cleaned_en = zip(*line_paiers)
+    
     Path(DATA_DIR + '/' + setname + '.zh').write_text('\n'.join(cleaned_zh))
     print('cleaned zh', setname, len(cleaned_zh))
     Path(DATA_DIR + '/' + setname + '.en').write_text('\n'.join(cleaned_en))
@@ -145,6 +148,11 @@ def clean_text(text_zh, text_en, setname):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Preprocess tool for WMT17-ZH-EN data.')
+    parser.add_argument('num_workers', metavar='N', type=int, help='number of workers')
+
+    args = parser.parse_args()
+    WORKER_NUM = args.num_workers
 
     preprocess_lang(['zh', 'cn', 'ch'], 'train')
     preprocess_lang(['en'], 'train')
